@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖Hyperion DB</title>
+</head>
+<body>
+    <h1>🧑🏿‍💻🧑🏿‍💻🧑🏿‍💻 Hyperion item DB v69.420</h1>
+
+    <h2>🫃🫃🫃What you want eh ?🤨🤨🤨</h2>
+    <form id="itemForm">
+        <label for="itemInput">Search and Select an item:</label>
+        <input type="text" id="itemInput" name="itemInput" oninput="filterItems()" placeholder="Type to search">
+
+        <div id="autocomplete">
+            <select id="itemSelect" name="itemSelect" size="5">
+                {% for item in items %}
+                    <option value="{{ item.name }}">{{ item.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="button" onclick="getItem()">Gimme the Quantity</button>
+    </form>
+
+    <div id="result"></div>
+
+    <h2>🐢Wanna add an item ?🤔🤔🤔</h2>
+    <form id="addItemForm">
+        <label for="newItemName">New Item Name:</label>
+        <input type="text" id="newItemName" name="newItemName" placeholder="Enter item name">
+    
+        <label for="newItemQuantity">Quantity:</label>
+        <input type="number" id="newItemQuantity" name="newItemQuantity" placeholder="Enter quantity">
+    
+        <button type="button" onclick="addItem()">Add Item</button>
+    </form>
+
+    <div id="addItemMessage"></div>
+
+    <script>
+        function filterItems() {
+            var input, filter, select, option, i;
+            input = document.getElementById('itemInput');
+            filter = input.value.toUpperCase();
+            select = document.getElementById('itemSelect');
+            
+            for (i = 0; i < select.options.length; i++) {
+                option = select.options[i];
+                if (option.value.toUpperCase().indexOf(filter) > -1) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        }
+
+        function getItem() {
+            var selectedItem = document.getElementById('itemSelect').value;
+
+            fetch('/items/' + selectedItem)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').innerHTML = '<p style="color: green;">Quantity: ' + data.Quantity + '</p>';
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        function addItem() {
+            var newName = document.getElementById('newItemName').value;
+            var newQuantity = document.getElementById('newItemQuantity').value;
+            var addItemMessage = document.getElementById('addItemMessage');
+            addItemMessage.innerHTML = '<p style="color: yellow;"> Sending... </p>';
+
+            if (newName && newQuantity) {
+                var newItem = {
+                    name: newName,
+                    Quantity: parseInt(newQuantity)
+                };
+
+                fetch('/add_item', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newItem)
+                })
+                // Reload the page after a successful addition
+                setTimeout(function() {
+                    location.reload();
+                }, 500); // Reload after a delay of 500 milliseconds (0.5 seconds)
+            } else {
+                alert('Please enter both item name and quantity.');
+            }
+        }
+
+        function saveItemsToDropdown() {
+            var select = document.getElementById('itemSelect');
+            select.innerHTML = '';
+
+            for (var i = 0; i < items.length; i++) {
+                var option = document.createElement('option');
+                option.value = items[i].name;
+                option.textContent = items[i].name;
+                select.appendChild(option);
+            }
+        }
+    </script>
+</body>
+</html>
